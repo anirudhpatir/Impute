@@ -1,0 +1,27 @@
+KnnImpute.mat = function(in.dat,in.cor,k){
+  # Intialize
+  knn.list = wt.list = data.frame(matrix(ncol = k+1, nrow = ncol(in.dat)),
+                                  row.names = colnames(in.dat))
+  
+  # Weights
+  cor.mat = fastCor(in.cor)
+  
+  # KNN
+  for(i in 1:nrow(cor.mat)){
+    tmp = sort(cor.mat[i, ], decreasing = T)
+    wt.list[i, ] = tmp[1:(k+1)]
+    knn.list[i,] = names(tmp[1:(k+1)])
+  }
+  
+  # Imputation
+  out.dat = sapply(1:ncol(in.dat), function(i) {
+    X = in.dat[,unlist(knn.list[i,])]
+    W = t(wt.list[i,])
+    X %*% W
+  })
+  
+  # Output
+  rownames(out.dat) = rownames(in.dat)
+  colnames(out.dat) = colnames(in.dat)
+  return(out.dat)
+}
